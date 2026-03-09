@@ -30,10 +30,10 @@ services:
 
   sqlite:
     image: coleifer/sqlite-web
-    container_name: sqlite-db
+    container_name: sqlite3-db
     restart: always
     environment:
-      SQLITE_DATABASE: mydb.sqlite
+      SQLITE_DATABASE: database.db
     volumes:
       - sqlite_data:/data
     ports:

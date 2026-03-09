@@ -1,6 +1,6 @@
 import { Inject, Injectable, UnauthorizedException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Pool } from 'mysql2/promise';
+import { type Pool } from 'mysql2/promise';
 import { DB_CONNECTION } from '../database/constants';
 import { LoginUserDto } from './dto/login-user.dto';
 import * as bcrypt from 'bcryptjs';
