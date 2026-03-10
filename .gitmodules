@@ -7,3 +7,6 @@
 [submodule "core-chat"]
 	path = core-chat
 	url = https://github.com/nathanschmid08/core-chat.git
+[submodule "src/mimo"]
+	path = src/mimo
+	url = https://github.com/nathanschmid08/mimo.git
