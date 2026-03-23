@@ -1,0 +1,52 @@
+type AssetMgmt {
+  asset_id: ID!
+  user_cr_id: Int!
+  comp_id: Int!
+  last_upd: String
+}
+
+type Risk {
+  risk_id: String
+  description: String
+  impact: String
+  probability: String
+}
+
+type Control {
+  control_id: String
+  description: String
+}
+
+type LastAudit {
+  date: String
+  auditor: String
+  result: String
+}
+
+type AssetDetails {
+  asset_id: Int!
+  name: String
+  type: String
+  description: String
+  classification: String
+  location: String
+  owner: String
+  value: String
+  status: String
+  risks: [Risk]
+  controls: [Control]
+  last_audit: LastAudit
+}
+
+# Combined GraphQL type (MySQL + MongoDB)
+type Asset {
+  asset_id: ID!
+  mysql: AssetMgmt!
+  mongo: AssetDetails
+}
+
+type Query {
+  asset(asset_id: ID!): Asset
+  assets(comp_id: Int!): [Asset!]!
+}
+

@@ -5,7 +5,8 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "assets": [
-      "mimo/qua.json"
+      "mimo/qua.json",
+      "graphql/**/*.graphql"
     ],
     "watchAssets": true
   }
