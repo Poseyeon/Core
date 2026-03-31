@@ -1,6 +1,3 @@
-[submodule "md"]
-	path = md
-	url = https://github.com/nathanschmid08/md.git
 [submodule "core-db"]
 	path = core-db
 	url = https://github.com/nathanschmid08/core-db.git
