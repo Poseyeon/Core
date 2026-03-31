@@ -1,9 +1,9 @@
 [submodule "core-db"]
 	path = core-db
-	url = https://github.com/nathanschmid08/core-db.git
+	url = https://github.com/poseyeon/core-db.git
 [submodule "core-chat"]
 	path = core-chat
-	url = https://github.com/nathanschmid08/core-chat.git
+	url = https://github.com/poseyeon/core-chat.git
 [submodule "src/mimo"]
 	path = src/mimo
-	url = https://github.com/nathanschmid08/mimo.git
+	url = https://github.com/poseyeon/mimo.git
