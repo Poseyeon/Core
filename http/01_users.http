@@ -1,0 +1,37 @@
+### Login
+POST http://localhost:3000/api/login
+Content-Type: application/json
+
+{
+  "company": "string",
+  "username": "string",
+  "password": "string"
+}
+
+### Create new user
+POST http://localhost:3000/api/users
+Content-Type: application/json
+
+{
+  "companyId": 0,
+  "role": "string",
+  "firstname": "string",
+  "surname": "string",
+  "username": "string",
+  "password": "string"
+}
+
+### Setup company & admin user
+POST http://localhost:3000/api/setup
+Content-Type: application/json
+
+{
+  "companyName": "string",
+  "companyDesc": "string",
+  "userAbbr": "string",
+  "firstname": "string",
+  "surname": "string",
+  "role": "string",
+  "password": "stringst",
+  "passwordRepeat": "string"
+}

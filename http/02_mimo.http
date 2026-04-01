@@ -1,0 +1,16 @@
+### Ask Mimo Chatbot
+POST http://localhost:3000/mimo/chatbot
+Content-Type: application/json
+
+{
+  "question": "Who is Mimo?"
+}
+
+### Add a custom question and answer to Mimo
+POST http://localhost:3000/mimo/customize
+Content-Type: application/json
+
+{
+  "question": "What is a new question?",
+  "answer": "This is the custom answer."
+}
