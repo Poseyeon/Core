@@ -36,6 +36,8 @@ type AssetDetails {
   risks: [Risk]
   controls: [Control]
   last_audit: LastAudit
+  created_at: String
+  updated_at: String
 }
 
 # Combined GraphQL type (MySQL + MongoDB)
@@ -45,8 +47,75 @@ type Asset {
   mongo: AssetDetails
 }
 
+type AnalyticsBucket {
+  key: String
+  count: Int!
+}
+
+type AssetsByMonth {
+  year: Int!
+  month: Int!
+  monthName: String!
+  label: String!
+  count: Int!
+}
+
+type AssetsSummary {
+  totalAssets: Int!
+  highValueAssets: Int!
+  byType: [AnalyticsBucket!]!
+  byStatus: [AnalyticsBucket!]!
+  byValue: [AnalyticsBucket!]!
+}
+
+type MutationResult {
+  success: Boolean!
+  message: String!
+}
+
+type CreateAssetResult {
+  success: Boolean!
+  message: String!
+  assetId: Int
+}
+
+input CreateAssetInput {
+  name: String!
+  type: String!
+  description: String
+  classification: String
+  location: String
+  owner: String
+  value: String
+  status: String
+  username: String!
+  companyId: Int!
+}
+
+input UpdateAssetInput {
+  name: String
+  type: String
+  description: String
+  classification: String
+  location: String
+  owner: String
+  value: String
+  status: String
+}
+
 type Query {
   asset(asset_id: ID!): Asset
   assets(comp_id: Int!): [Asset!]!
+  assetsByType(companyId: Int!): [AnalyticsBucket!]!
+  assetsByStatus(companyId: Int!): [AnalyticsBucket!]!
+  assetsByValue(companyId: Int!): [AnalyticsBucket!]!
+  assetsByClassification(companyId: Int!): [AnalyticsBucket!]!
+  assetsByMonth(companyId: Int!): [AssetsByMonth!]!
+  assetsSummary(companyId: Int!): AssetsSummary!
 }
 
+type Mutation {
+  createAsset(input: CreateAssetInput!): CreateAssetResult!
+  updateAsset(asset_id: ID!, input: UpdateAssetInput!): MutationResult!
+  deleteAsset(asset_id: ID!): MutationResult!
+}
