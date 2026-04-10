@@ -1,9 +1,33 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Res,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SetupDto } from './dto/setup.dto';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import type { Response } from 'express';
 
+@ApiTags('Users')
 @Controller('api') // Setting a base path for all routes in this controller
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -21,5 +45,88 @@ export class UsersController {
   @Post('setup')
   async setup(@Body() setupDto: SetupDto) {
     return this.usersService.setup(setupDto);
+  }
+
+  @Get('profile-picture/:userId')
+  @ApiOperation({ summary: 'Get profile picture by user ID' })
+  @ApiParam({ name: 'userId', type: Number, example: 42 })
+  @ApiResponse({ status: 200, description: 'JPEG image bytes' })
+  @ApiResponse({ status: 404, description: 'Profile picture not found' })
+  async getProfilePicture(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Res() res: Response,
+  ) {
+    const image = await this.usersService.getProfilePicture(userId);
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.send(image);
+  }
+
+  @Post('profile-picture/:userId')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  @ApiOperation({ summary: 'Upload or update profile picture by user ID' })
+  @ApiParam({ name: 'userId', type: Number, example: 42 })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Image file (png, jpg, jpeg, gif, webp), max 5MB',
+        },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile picture uploaded successfully',
+    schema: {
+      example: { success: true, message: 'Profile picture uploaded successfully' },
+    },
+  })
+  async uploadProfilePicture(
+    @Param('userId', ParseIntPipe) userId: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    return this.usersService.uploadProfilePicture(userId, file);
+  }
+
+  @Get('user-id')
+  @ApiOperation({ summary: 'Get userId from username and companyId' })
+  @ApiQuery({ name: 'username', type: String, required: true, example: 'NSCHMID' })
+  @ApiQuery({ name: 'companyId', type: Number, required: true, example: 7 })
+  @ApiResponse({
+    status: 200,
+    description: 'User id resolved',
+    schema: { example: { success: true, userId: 42 } },
+  })
+  async getUserId(
+    @Query('username') username?: string,
+    @Query('companyId') companyId?: string,
+  ) {
+    if (!username || !companyId) {
+      throw new BadRequestException('Missing username or companyId');
+    }
+    const parsedCompanyId = Number.parseInt(companyId, 10);
+    if (Number.isNaN(parsedCompanyId)) {
+      throw new BadRequestException('Missing username or companyId');
+    }
+    return this.usersService.getUserIdByUsernameAndCompany(username, parsedCompanyId);
+  }
+
+  @Get('/health')
+  @ApiOperation({ summary: 'Health check endpoint' })
+  @ApiResponse({ status: 200, schema: { example: { status: 'ok', port: 3000 } } })
+  health() {
+    return this.usersService.getHealth();
   }
 }
