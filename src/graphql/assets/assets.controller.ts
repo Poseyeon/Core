@@ -12,6 +12,7 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  ApiProperty,
   ApiBody,
   ApiOperation,
   ApiParam,
@@ -22,33 +23,117 @@ import {
 import { AssetsService } from './assets.service';
 
 class CreateAssetBodyDto {
+  @ApiProperty({ example: 'CRM Database' })
   name!: string;
+  @ApiProperty({ example: 'database' })
   type!: string;
+  @ApiProperty({ required: false, example: 'Stores customer records' })
   description?: string;
+  @ApiProperty({ required: false, example: 'confidential' })
   classification?: string;
+  @ApiProperty({ required: false, example: 'eu-central-1' })
   location?: string;
+  @ApiProperty({ required: false, example: 'IT Security' })
   owner?: string;
+  @ApiProperty({ required: false, example: 'high' })
   value?: string;
+  @ApiProperty({ required: false, example: 'active' })
   status?: string;
+  @ApiProperty({ example: 'NSCHMID' })
   username!: string;
+  @ApiProperty({ example: 7 })
   companyId!: number;
 }
 
 class UpdateAssetBodyDto {
+  @ApiProperty({ required: false, example: 'CRM Database v2' })
   name?: string;
+  @ApiProperty({ required: false, example: 'database' })
   type?: string;
+  @ApiProperty({ required: false, example: 'Updated description' })
   description?: string;
+  @ApiProperty({ required: false, example: 'strictly-confidential' })
   classification?: string;
+  @ApiProperty({ required: false, example: 'eu-west-1' })
   location?: string;
+  @ApiProperty({ required: false, example: 'Security Team' })
   owner?: string;
+  @ApiProperty({ required: false, example: 'critical' })
   value?: string;
+  @ApiProperty({ required: false, example: 'inactive' })
   status?: string;
+}
+
+class AssetListQueryDto {
+  @ApiProperty({
+    example: 7,
+    description: 'Company identifier used to filter all returned assets',
+  })
+  companyId!: number;
 }
 
 @ApiTags('Assets')
 @Controller('api/assets')
 export class AssetsController {
   constructor(private readonly assetsService: AssetsService) {}
+
+  @Get()
+  @ApiOperation({
+    summary: 'Get all assets for a company',
+    description:
+      'Returns all assets associated with the provided companyId. If companyId is missing, the API responds with 400.',
+  })
+  @ApiQuery({
+    name: 'companyId',
+    required: true,
+    type: Number,
+    example: 7,
+    description: 'Company ID used to filter assets',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Filtered assets returned successfully',
+    schema: {
+      example: [
+        {
+          asset_id: 123,
+          mysql: {
+            asset_id: 123,
+            user_cr_id: 11,
+            comp_id: 7,
+            last_upd: null,
+          },
+          mongo: {
+            asset_id: 123,
+            name: 'CRM Database',
+            type: 'database',
+            classification: 'confidential',
+            value: 'high',
+            status: 'active',
+          },
+        },
+      ],
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Missing or invalid companyId',
+    schema: {
+      example: {
+        statusCode: 400,
+        message: 'Missing or invalid companyId query parameter',
+        error: 'Bad Request',
+      },
+    },
+  })
+  async getAssetsByCompany(@Query() query: AssetListQueryDto) {
+    const parsedCompanyId = Number.parseInt(String(query.companyId), 10);
+    if (!Number.isInteger(parsedCompanyId)) {
+      throw new BadRequestException('Missing or invalid companyId query parameter');
+    }
+
+    return this.assetsService.getAssets(parsedCompanyId);
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create a new asset' })

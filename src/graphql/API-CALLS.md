@@ -104,7 +104,58 @@ All endpoints return JSON.
 
 ---
 
-## 3) Update Asset
+## 3) Get All Assets by Company
+
+**Endpoint**
+
+- `GET /api/assets?companyId={companyId}`
+
+**Use case**
+
+- Load all assets that belong to one company (for list/table/dashboard pages).
+
+**Query parameter**
+
+- `companyId` (required, number)
+
+**Decision for missing companyId**
+
+- If `companyId` is missing or invalid, backend returns `400 Bad Request`.
+- Reason: this endpoint is intentionally a **filtered company scope endpoint** and should not accidentally return cross-company data.
+
+**Example request**
+
+- `GET /api/assets?companyId=7`
+
+**Success response**
+
+```json
+[
+  {
+    "asset_id": 123,
+    "mysql": {
+      "asset_id": 123,
+      "user_cr_id": 11,
+      "comp_id": 7,
+      "last_upd": null
+    },
+    "mongo": {
+      "asset_id": 123,
+      "name": "CRM Database",
+      "type": "database",
+      "status": "active"
+    }
+  }
+]
+```
+
+**Error responses**
+
+- `400` if `companyId` is missing or not a valid number
+
+---
+
+## 4) Update Asset
 
 **Endpoint**
 
@@ -144,7 +195,7 @@ All endpoints return JSON.
 
 ---
 
-## 4) Delete Asset
+## 5) Delete Asset
 
 **Endpoint**
 
@@ -173,7 +224,7 @@ All endpoints return JSON.
 
 ---
 
-## 5) Analytics Endpoints
+## 6) Analytics Endpoints
 
 All analytics endpoints require:
 
@@ -341,6 +392,14 @@ await apiFetch('http://localhost:3000/api/assets/123', {
   method: 'PUT',
   body: JSON.stringify({ status: 'inactive' }),
 });
+```
+
+### List by Company
+
+```ts
+const assets = await apiFetch<any[]>(
+  'http://localhost:3000/api/assets?companyId=7',
+);
 ```
 
 ### Analytics
