@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './database/database.module';
 import { MimoModule } from './mimo/mimo.module';
 import { AssetsModule } from './graphql/assets/assets.module';
+import { AssetExportModule } from './graphql/asset-export/asset-export.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AssetsModule } from './graphql/assets/assets.module';
     UsersModule,
     MimoModule,
     AssetsModule,
+    AssetExportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

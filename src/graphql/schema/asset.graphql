@@ -112,6 +112,7 @@ type Query {
   assetsByClassification(companyId: Int!): [AnalyticsBucket!]!
   assetsByMonth(companyId: Int!): [AssetsByMonth!]!
   assetsSummary(companyId: Int!): AssetsSummary!
+  downloadAssets(comp_id: Int!): String!
 }
 
 type Mutation {
