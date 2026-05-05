@@ -9,9 +9,11 @@ export class UsersHealthController {
 
   @Get('health')
   @ApiOperation({ summary: 'Health check endpoint' })
-  @ApiResponse({ status: 200, schema: { example: { status: 'ok', port: 3000 } } })
+  @ApiResponse({
+    status: 200,
+    schema: { example: { status: 'ok', port: 3000 } },
+  })
   health() {
     return this.usersService.getHealth();
   }
 }
-

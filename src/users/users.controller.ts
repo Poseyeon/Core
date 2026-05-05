@@ -87,7 +87,10 @@ export class UsersController {
     status: 200,
     description: 'Profile picture uploaded successfully',
     schema: {
-      example: { success: true, message: 'Profile picture uploaded successfully' },
+      example: {
+        success: true,
+        message: 'Profile picture uploaded successfully',
+      },
     },
   })
   async uploadProfilePicture(
@@ -102,7 +105,12 @@ export class UsersController {
 
   @Get('user-id')
   @ApiOperation({ summary: 'Get userId from username and companyId' })
-  @ApiQuery({ name: 'username', type: String, required: true, example: 'NSCHMID' })
+  @ApiQuery({
+    name: 'username',
+    type: String,
+    required: true,
+    example: 'NSCHMID',
+  })
   @ApiQuery({ name: 'companyId', type: Number, required: true, example: 7 })
   @ApiResponse({
     status: 200,
@@ -120,12 +128,18 @@ export class UsersController {
     if (Number.isNaN(parsedCompanyId)) {
       throw new BadRequestException('Missing username or companyId');
     }
-    return this.usersService.getUserIdByUsernameAndCompany(username, parsedCompanyId);
+    return this.usersService.getUserIdByUsernameAndCompany(
+      username,
+      parsedCompanyId,
+    );
   }
 
   @Get('/health')
   @ApiOperation({ summary: 'Health check endpoint' })
-  @ApiResponse({ status: 200, schema: { example: { status: 'ok', port: 3000 } } })
+  @ApiResponse({
+    status: 200,
+    schema: { example: { status: 'ok', port: 3000 } },
+  })
   health() {
     return this.usersService.getHealth();
   }

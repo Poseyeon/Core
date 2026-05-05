@@ -10,16 +10,25 @@ export class AssetExportController {
 
   @Get('docx/:companyId')
   @ApiOperation({ summary: 'Download all assets for a company as a Word file' })
-  @ApiParam({ name: 'companyId', type: Number, description: 'Numeric company id' })
-  @ApiResponse({ status: 200, description: 'Word file downloaded successfully' })
+  @ApiParam({
+    name: 'companyId',
+    type: Number,
+    description: 'Numeric company id',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Word file downloaded successfully',
+  })
   async downloadAssets(
     @Param('companyId', ParseIntPipe) companyId: number,
     @Res() res: Response,
   ) {
-    const buffer = await this.assetExportService.downloadAssetsAsDocx(companyId);
+    const buffer =
+      await this.assetExportService.downloadAssetsAsDocx(companyId);
 
     res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'Content-Disposition': `attachment; filename=assets_company_${companyId}.docx`,
       'Content-Length': buffer.length,
     });

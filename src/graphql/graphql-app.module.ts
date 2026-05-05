@@ -23,4 +23,3 @@ import { AssetsModule } from './assets/assets.module';
   ],
 })
 export class GraphqlAppModule {}
-

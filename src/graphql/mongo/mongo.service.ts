@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Db, MongoClient } from 'mongodb';
 
@@ -12,7 +17,9 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly configService: ConfigService) {}
 
   async onModuleInit(): Promise<void> {
-    const connectionString = this.configService.get<string>('MONGO_CONNECTION_STRING');
+    const connectionString = this.configService.get<string>(
+      'MONGO_CONNECTION_STRING',
+    );
     const initDbName = this.configService.get<string>('MONGO_INITDB_DATABASE');
 
     if (!connectionString) {
@@ -46,4 +53,3 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
     return this.db;
   }
 }
-

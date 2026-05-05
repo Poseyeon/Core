@@ -12,4 +12,3 @@ import { AssetsController } from './assets.controller';
   exports: [AssetsService],
 })
 export class AssetsModule {}
-

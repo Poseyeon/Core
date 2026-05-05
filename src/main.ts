@@ -37,7 +37,7 @@ async function bootstrap() {
     await gqlApp.listen(4000);
   } catch (err) {
     // REST should keep running even if GraphQL fails to initialize (e.g. Mongo down).
-    // eslint-disable-next-line no-console
+
     console.error('[GRAPHQL] Failed to start GraphQL on port 4000:', err);
   }
 }

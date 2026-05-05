@@ -55,7 +55,9 @@ export class UsersService implements OnModuleInit {
     await this.withSqliteDb((db) => this.runSqlite(db, sql));
   }
 
-  private async withSqliteDb<T>(fn: (db: sqlite3.Database) => Promise<T>): Promise<T> {
+  private async withSqliteDb<T>(
+    fn: (db: sqlite3.Database) => Promise<T>,
+  ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const db = new sqlite3.Database(this.sqliteDbPath, async (openErr) => {
         if (openErr) {
@@ -78,7 +80,11 @@ export class UsersService implements OnModuleInit {
     });
   }
 
-  private async runSqlite(db: sqlite3.Database, sql: string, params: any[] = []): Promise<void> {
+  private async runSqlite(
+    db: sqlite3.Database,
+    sql: string,
+    params: any[] = [],
+  ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       db.run(sql, params, (err) => {
         if (err) {
@@ -90,7 +96,11 @@ export class UsersService implements OnModuleInit {
     });
   }
 
-  private async getSqlite<T = any>(db: sqlite3.Database, sql: string, params: any[] = []): Promise<T | undefined> {
+  private async getSqlite<T = any>(
+    db: sqlite3.Database,
+    sql: string,
+    params: any[] = [],
+  ): Promise<T | undefined> {
     return new Promise<T | undefined>((resolve, reject) => {
       db.get(sql, params, (err, row) => {
         if (err) {
@@ -105,7 +115,9 @@ export class UsersService implements OnModuleInit {
   private validateImage(file: Express.Multer.File): void {
     const allowedExtensions = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp']);
     const fileName = file.originalname || '';
-    const ext = fileName.includes('.') ? fileName.split('.').pop()?.toLowerCase() : '';
+    const ext = fileName.includes('.')
+      ? fileName.split('.').pop()?.toLowerCase()
+      : '';
 
     if (!ext || !allowedExtensions.has(ext)) {
       throw new BadRequestException(
@@ -131,7 +143,9 @@ export class UsersService implements OnModuleInit {
         .jpeg({ quality: 85, mozjpeg: true })
         .toBuffer();
     } catch (err) {
-      throw new BadRequestException(`Invalid image file: ${(err as Error).message}`);
+      throw new BadRequestException(
+        `Invalid image file: ${(err as Error).message}`,
+      );
     }
   }
 
@@ -190,61 +204,76 @@ export class UsersService implements OnModuleInit {
   }
 
   async createUser(createUserDto: CreateUserDto) {
-    const { companyId, role, firstname, surname, username, password } = createUserDto;
+    const { companyId, role, firstname, surname, username, password } =
+      createUserDto;
 
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const [result] = await this.pool.query<any>(
-            'INSERT INTO USERS (COMP_ID, USER_ABBR, USER_SURNAME, USER_FIRST_NAME, USER_ROLE, USER_PASSWORD) VALUES (?, ?, ?, ?, ?, ?)',
-            [companyId, username, surname, firstname, role, hashedPassword]
-        );
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const [result] = await this.pool.query<any>(
+        'INSERT INTO USERS (COMP_ID, USER_ABBR, USER_SURNAME, USER_FIRST_NAME, USER_ROLE, USER_PASSWORD) VALUES (?, ?, ?, ?, ?, ?)',
+        [companyId, username, surname, firstname, role, hashedPassword],
+      );
 
-        const userId = result.insertId;
-        return { success: true, message: 'User created successfully', userId };
+      const userId = result.insertId;
+      return { success: true, message: 'User created successfully', userId };
     } catch (err) {
-        console.error('Create user error:', err);
-        throw new InternalServerErrorException('Server error: ' + err.message);
+      console.error('Create user error:', err);
+      throw new InternalServerErrorException('Server error: ' + err.message);
     }
   }
 
   async setup(setupDto: SetupDto) {
-    const { companyName, companyDesc, userAbbr, firstname, surname, role, password, passwordRepeat } = setupDto;
+    const {
+      companyName,
+      companyDesc,
+      userAbbr,
+      firstname,
+      surname,
+      role,
+      password,
+      passwordRepeat,
+    } = setupDto;
 
     if (password !== passwordRepeat) {
-        throw new BadRequestException('Passwords do not match');
+      throw new BadRequestException('Passwords do not match');
     }
 
     const conn = await this.pool.getConnection();
     try {
-        await conn.beginTransaction();
+      await conn.beginTransaction();
 
-        const [companyResult] = await conn.query<any>(
-            'INSERT INTO COMPANY (COMP_NAME, COMP_DESC) VALUES (?, ?)',
-            [companyName, companyDesc]
-        );
-        const companyId = companyResult.insertId;
+      const [companyResult] = await conn.query<any>(
+        'INSERT INTO COMPANY (COMP_NAME, COMP_DESC) VALUES (?, ?)',
+        [companyName, companyDesc],
+      );
+      const companyId = companyResult.insertId;
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const [userResult] = await conn.query<any>(
-            'INSERT INTO USERS (COMP_ID, USER_ABBR, USER_SURNAME, USER_FIRST_NAME, USER_ROLE, USER_PASSWORD) VALUES (?, ?, ?, ?, ?, ?)',
-            [companyId, userAbbr, surname, firstname, role, hashedPassword]
-        );
-        const userId = userResult.insertId;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const [userResult] = await conn.query<any>(
+        'INSERT INTO USERS (COMP_ID, USER_ABBR, USER_SURNAME, USER_FIRST_NAME, USER_ROLE, USER_PASSWORD) VALUES (?, ?, ?, ?, ?, ?)',
+        [companyId, userAbbr, surname, firstname, role, hashedPassword],
+      );
+      const userId = userResult.insertId;
 
-        await conn.query(
-            'UPDATE COMPANY SET COMP_OWNER_ID = ? WHERE COMP_ID = ?',
-            [userId, companyId]
-        );
+      await conn.query(
+        'UPDATE COMPANY SET COMP_OWNER_ID = ? WHERE COMP_ID = ?',
+        [userId, companyId],
+      );
 
-        await conn.commit();
+      await conn.commit();
 
-        return { success: true, message: 'Setup completed successfully', companyId, userId };
+      return {
+        success: true,
+        message: 'Setup completed successfully',
+        companyId,
+        userId,
+      };
     } catch (err) {
-        await conn.rollback();
-        console.error('Setup error:', err);
-        throw new InternalServerErrorException('Server error: ' + err.message);
+      await conn.rollback();
+      console.error('Setup error:', err);
+      throw new InternalServerErrorException('Server error: ' + err.message);
     } finally {
-        conn.release();
+      conn.release();
     }
   }
 
@@ -266,7 +295,9 @@ export class UsersService implements OnModuleInit {
       if (err instanceof NotFoundException) {
         throw err;
       }
-      throw new InternalServerErrorException(`Server error: ${(err as Error).message}`);
+      throw new InternalServerErrorException(
+        `Server error: ${(err as Error).message}`,
+      );
     }
   }
 
@@ -301,9 +332,14 @@ export class UsersService implements OnModuleInit {
         }
       });
 
-      return { success: true, message: 'Profile picture uploaded successfully' };
+      return {
+        success: true,
+        message: 'Profile picture uploaded successfully',
+      };
     } catch (err) {
-      throw new InternalServerErrorException(`Server error: ${(err as Error).message}`);
+      throw new InternalServerErrorException(
+        `Server error: ${(err as Error).message}`,
+      );
     }
   }
 
@@ -323,7 +359,9 @@ export class UsersService implements OnModuleInit {
       if (err instanceof NotFoundException) {
         throw err;
       }
-      throw new InternalServerErrorException(`Server error: ${(err as Error).message}`);
+      throw new InternalServerErrorException(
+        `Server error: ${(err as Error).message}`,
+      );
     }
   }
 

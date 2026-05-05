@@ -40,7 +40,9 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
         socket: {
           reconnectStrategy: (retries: number) => {
             if (retries > 10) {
-              this.logger.warn('[REDIS] Max reconnect attempts reached. Disabling cache.');
+              this.logger.warn(
+                '[REDIS] Max reconnect attempts reached. Disabling cache.',
+              );
               this.redisEnabled = false;
               return new Error('Redis reconnect limit reached');
             }
@@ -84,7 +86,10 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async getMySQLAsset(asset_id: string): Promise<any | null> {
-    const [rows] = await this.mysqlPool.query('SELECT * FROM ASSET_MGMT WHERE ASSET_ID = ?', [asset_id]);
+    const [rows] = await this.mysqlPool.query(
+      'SELECT * FROM ASSET_MGMT WHERE ASSET_ID = ?',
+      [asset_id],
+    );
 
     if (!Array.isArray(rows) || rows.length === 0) {
       return null;
@@ -99,7 +104,10 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
       return null;
     }
 
-    return this.mongoService.getDb().collection('assets').findOne({ asset_id: parsedAssetId });
+    return this.mongoService
+      .getDb()
+      .collection('assets')
+      .findOne({ asset_id: parsedAssetId });
   }
 
   private async getCachedAsset(assetId: number): Promise<any | null> {
@@ -122,7 +130,11 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     }
     try {
       const cacheKey = `${this.cacheKeyPrefix}${assetId}`;
-      await this.redisClient.setEx(cacheKey, this.cacheTtl, JSON.stringify(assetData));
+      await this.redisClient.setEx(
+        cacheKey,
+        this.cacheTtl,
+        JSON.stringify(assetData),
+      );
     } catch (err) {
       this.logger.error('[CACHE] Error writing asset cache', err as Error);
     }
@@ -140,7 +152,10 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async getCachedAggregation(aggType: string, companyId: number): Promise<any | null> {
+  private async getCachedAggregation(
+    aggType: string,
+    companyId: number,
+  ): Promise<any | null> {
     if (!this.redisEnabled || !this.redisClient) {
       return null;
     }
@@ -149,20 +164,34 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
       const cached = await this.redisClient.get(cacheKey);
       return cached ? JSON.parse(cached) : null;
     } catch (err) {
-      this.logger.error('[CACHE] Error reading aggregation cache', err as Error);
+      this.logger.error(
+        '[CACHE] Error reading aggregation cache',
+        err as Error,
+      );
       return null;
     }
   }
 
-  private async setCachedAggregation(aggType: string, companyId: number, data: any): Promise<void> {
+  private async setCachedAggregation(
+    aggType: string,
+    companyId: number,
+    data: any,
+  ): Promise<void> {
     if (!this.redisEnabled || !this.redisClient) {
       return;
     }
     try {
       const cacheKey = `${this.cacheKeyPrefixAgg}${aggType}:${companyId}`;
-      await this.redisClient.setEx(cacheKey, this.cacheTtlAggregations, JSON.stringify(data));
+      await this.redisClient.setEx(
+        cacheKey,
+        this.cacheTtlAggregations,
+        JSON.stringify(data),
+      );
     } catch (err) {
-      this.logger.error('[CACHE] Error writing aggregation cache', err as Error);
+      this.logger.error(
+        '[CACHE] Error writing aggregation cache',
+        err as Error,
+      );
     }
   }
 
@@ -171,12 +200,17 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
       return;
     }
     try {
-      const keys = await this.redisClient.keys(`${this.cacheKeyPrefixAgg}*:${companyId}`);
+      const keys = await this.redisClient.keys(
+        `${this.cacheKeyPrefixAgg}*:${companyId}`,
+      );
       if (keys.length > 0) {
         await this.redisClient.del(keys);
       }
     } catch (err) {
-      this.logger.error('[CACHE] Error invalidating aggregation cache', err as Error);
+      this.logger.error(
+        '[CACHE] Error invalidating aggregation cache',
+        err as Error,
+      );
     }
   }
 
@@ -191,7 +225,10 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     return rows.map((row: any) => row.ASSET_ID);
   }
 
-  private normalizeBucket(input: any, keyField: string): { key: string; count: number } {
+  private normalizeBucket(
+    input: any,
+    keyField: string,
+  ): { key: string; count: number } {
     return {
       key: input?.[keyField] ?? null,
       count: input?.count ?? 0,
@@ -229,7 +266,10 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
   async getAssets(comp_id: number): Promise<any[]> {
     this.logger.debug(`[QUERY] assets(comp_id=${comp_id})`);
 
-    const [rows] = await this.mysqlPool.query('SELECT * FROM ASSET_MGMT WHERE COMP_ID = ?', [comp_id]);
+    const [rows] = await this.mysqlPool.query(
+      'SELECT * FROM ASSET_MGMT WHERE COMP_ID = ?',
+      [comp_id],
+    );
     if (!Array.isArray(rows) || rows.length === 0) {
       return [];
     }
@@ -246,7 +286,9 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     );
   }
 
-  async createAsset(input: any): Promise<{ success: boolean; message: string; assetId: number | null }> {
+  async createAsset(
+    input: any,
+  ): Promise<{ success: boolean; message: string; assetId: number | null }> {
     const {
       name,
       type,
@@ -269,7 +311,11 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
       );
 
       if (!Array.isArray(users) || users.length === 0) {
-        return { success: false, message: 'User not found for the given company.', assetId: null };
+        return {
+          success: false,
+          message: 'User not found for the given company.',
+          assetId: null,
+        };
       }
 
       const userId = users[0].USER_ID as number;
@@ -299,7 +345,10 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
       if (owner) assetDetails.owner = owner;
       if (value) assetDetails.value = value;
 
-      await this.mongoService.getDb().collection('assets').insertOne(assetDetails);
+      await this.mongoService
+        .getDb()
+        .collection('assets')
+        .insertOne(assetDetails);
       await sqlConnection.commit();
 
       await this.setCachedAsset(assetId, assetDetails);
@@ -311,7 +360,11 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
         await sqlConnection.rollback();
       }
       this.logger.error('Asset creation error', err as Error);
-      return { success: false, message: 'Server error while creating asset', assetId: null };
+      return {
+        success: false,
+        message: 'Server error while creating asset',
+        assetId: null,
+      };
     } finally {
       if (sqlConnection) {
         sqlConnection.release();
@@ -319,7 +372,10 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async updateAsset(asset_id: string, input: any): Promise<{ success: boolean; message: string }> {
+  async updateAsset(
+    asset_id: string,
+    input: any,
+  ): Promise<{ success: boolean; message: string }> {
     const parsedAssetId = Number.parseInt(asset_id, 10);
     if (Number.isNaN(parsedAssetId)) {
       return { success: false, message: 'Invalid asset id' };
@@ -353,9 +409,10 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     }
 
     await this.invalidateAssetCache(parsedAssetId);
-    const [rows] = await this.mysqlPool.query('SELECT COMP_ID FROM ASSET_MGMT WHERE ASSET_ID = ?', [
-      parsedAssetId,
-    ]);
+    const [rows] = await this.mysqlPool.query(
+      'SELECT COMP_ID FROM ASSET_MGMT WHERE ASSET_ID = ?',
+      [parsedAssetId],
+    );
     const typedRows = rows as any[];
     if (typedRows.length > 0) {
       await this.invalidateAllAggregations(typedRows[0].COMP_ID);
@@ -364,7 +421,9 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     return { success: true, message: 'Asset updated successfully' };
   }
 
-  async deleteAsset(asset_id: string): Promise<{ success: boolean; message: string }> {
+  async deleteAsset(
+    asset_id: string,
+  ): Promise<{ success: boolean; message: string }> {
     const parsedAssetId = Number.parseInt(asset_id, 10);
     if (Number.isNaN(parsedAssetId)) {
       return { success: false, message: 'Invalid asset id' };
@@ -378,12 +437,15 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
         [parsedAssetId],
       );
       const companyIdForCache =
-        Array.isArray(companyRows) && companyRows.length > 0 ? companyRows[0].COMP_ID : null;
+        Array.isArray(companyRows) && companyRows.length > 0
+          ? companyRows[0].COMP_ID
+          : null;
 
       await sqlConnection.beginTransaction();
-      const [sqlResult] = await sqlConnection.query('DELETE FROM ASSET_MGMT WHERE ASSET_ID = ?', [
-        parsedAssetId,
-      ]);
+      const [sqlResult] = await sqlConnection.query(
+        'DELETE FROM ASSET_MGMT WHERE ASSET_ID = ?',
+        [parsedAssetId],
+      );
       if (!sqlResult.affectedRows) {
         await sqlConnection.rollback();
         return { success: false, message: 'Asset not found in MySQL' };
@@ -418,7 +480,9 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async assetsByType(companyId: number): Promise<Array<{ key: string; count: number }>> {
+  async assetsByType(
+    companyId: number,
+  ): Promise<Array<{ key: string; count: number }>> {
     const assetIds = await this.getCompanyAssetIds(companyId);
     if (assetIds.length === 0) {
       return [];
@@ -442,7 +506,9 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     return result.map((item: any) => this.normalizeBucket(item, 'type'));
   }
 
-  async assetsByStatus(companyId: number): Promise<Array<{ key: string; count: number }>> {
+  async assetsByStatus(
+    companyId: number,
+  ): Promise<Array<{ key: string; count: number }>> {
     const assetIds = await this.getCompanyAssetIds(companyId);
     if (assetIds.length === 0) {
       return [];
@@ -466,7 +532,9 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     return result.map((item: any) => this.normalizeBucket(item, 'status'));
   }
 
-  async assetsByValue(companyId: number): Promise<Array<{ key: string; count: number }>> {
+  async assetsByValue(
+    companyId: number,
+  ): Promise<Array<{ key: string; count: number }>> {
     const assetIds = await this.getCompanyAssetIds(companyId);
     if (assetIds.length === 0) {
       return [];
@@ -490,13 +558,18 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
     return result.map((item: any) => this.normalizeBucket(item, 'value'));
   }
 
-  async assetsByClassification(companyId: number): Promise<Array<{ key: string; count: number }>> {
+  async assetsByClassification(
+    companyId: number,
+  ): Promise<Array<{ key: string; count: number }>> {
     const assetIds = await this.getCompanyAssetIds(companyId);
     if (assetIds.length === 0) {
       return [];
     }
 
-    let result = await this.getCachedAggregation('by-classification', companyId);
+    let result = await this.getCachedAggregation(
+      'by-classification',
+      companyId,
+    );
     if (!result) {
       result = await this.mongoService
         .getDb()
@@ -511,11 +584,19 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
       await this.setCachedAggregation('by-classification', companyId, result);
     }
 
-    return result.map((item: any) => this.normalizeBucket(item, 'classification'));
+    return result.map((item: any) =>
+      this.normalizeBucket(item, 'classification'),
+    );
   }
 
   async assetsByMonth(companyId: number): Promise<
-    Array<{ year: number; month: number; monthName: string; label: string; count: number }>
+    Array<{
+      year: number;
+      month: number;
+      monthName: string;
+      label: string;
+      count: number;
+    }>
   > {
     const assetIds = await this.getCompanyAssetIds(companyId);
     if (assetIds.length === 0) {
@@ -528,10 +609,18 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
         .getDb()
         .collection('assets')
         .aggregate([
-          { $match: { asset_id: { $in: assetIds }, created_at: { $exists: true } } },
+          {
+            $match: {
+              asset_id: { $in: assetIds },
+              created_at: { $exists: true },
+            },
+          },
           {
             $group: {
-              _id: { year: { $year: '$created_at' }, month: { $month: '$created_at' } },
+              _id: {
+                year: { $year: '$created_at' },
+                month: { $month: '$created_at' },
+              },
               count: { $sum: 1 },
             },
           },
@@ -543,7 +632,20 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
               month: '$_id.month',
               monthName: {
                 $arrayElemAt: [
-                  ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                  [
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec',
+                  ],
                   { $subtract: ['$_id.month', 1] },
                 ],
               },
@@ -551,7 +653,20 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
                 $concat: [
                   {
                     $arrayElemAt: [
-                      ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                      [
+                        'Jan',
+                        'Feb',
+                        'Mar',
+                        'Apr',
+                        'May',
+                        'Jun',
+                        'Jul',
+                        'Aug',
+                        'Sep',
+                        'Oct',
+                        'Nov',
+                        'Dec',
+                      ],
                       { $subtract: ['$_id.month', 1] },
                     ],
                   },
@@ -622,9 +737,15 @@ export class AssetsService implements OnModuleInit, OnModuleDestroy {
       result = {
         totalAssets: facetData.totalAssets?.[0]?.count || 0,
         highValueAssets: facetData.highValueAssets?.[0]?.count || 0,
-        byType: (facetData.byType || []).map((item: any) => this.normalizeBucket(item, 'type')),
-        byStatus: (facetData.byStatus || []).map((item: any) => this.normalizeBucket(item, 'status')),
-        byValue: (facetData.byValue || []).map((item: any) => this.normalizeBucket(item, 'value')),
+        byType: (facetData.byType || []).map((item: any) =>
+          this.normalizeBucket(item, 'type'),
+        ),
+        byStatus: (facetData.byStatus || []).map((item: any) =>
+          this.normalizeBucket(item, 'status'),
+        ),
+        byValue: (facetData.byValue || []).map((item: any) =>
+          this.normalizeBucket(item, 'value'),
+        ),
       };
       await this.setCachedAggregation('summary', companyId, result);
     }

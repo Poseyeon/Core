@@ -129,7 +129,9 @@ export class AssetsController {
   async getAssetsByCompany(@Query() query: AssetListQueryDto) {
     const parsedCompanyId = Number.parseInt(String(query.companyId), 10);
     if (!Number.isInteger(parsedCompanyId)) {
-      throw new BadRequestException('Missing or invalid companyId query parameter');
+      throw new BadRequestException(
+        'Missing or invalid companyId query parameter',
+      );
     }
 
     return this.assetsService.getAssets(parsedCompanyId);
@@ -252,4 +254,3 @@ export class AssetsController {
     return { success: true, data };
   }
 }
-
