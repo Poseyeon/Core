@@ -154,7 +154,7 @@ export class UsersService implements OnModuleInit {
 
     try {
       const [rows] = await this.pool.query<any[]>(
-        'SELECT USER_ID, USER_ABBR, USER_PASSWORD, USER_SURNAME, USER_FIRST_NAME, USER_ROLE FROM USERS WHERE COMP_ID = ? AND USER_ABBR = ? LIMIT 1',
+        'SELECT USER_ID, USER_ABBR, USER_PASSWORD, USER_SURNAME, USER_FIRST_NAME, USER_ROLE, IS_ADMIN FROM USERS WHERE COMP_ID = ? AND USER_ABBR = ? LIMIT 1',
         [company, username],
       );
 
@@ -178,6 +178,7 @@ export class UsersService implements OnModuleInit {
         surname: user.USER_SURNAME,
         firstName: user.USER_FIRST_NAME,
         role: user.USER_ROLE,
+        isAdmin: !!user.IS_ADMIN,
       };
 
       const token = this.jwtService.sign(payload);
@@ -204,14 +205,14 @@ export class UsersService implements OnModuleInit {
   }
 
   async createUser(createUserDto: CreateUserDto) {
-    const { companyId, role, firstname, surname, username, password } =
+    const { companyId, role, firstname, surname, username, password, isAdmin } =
       createUserDto;
 
     try {
       const hashedPassword = await bcrypt.hash(password, 10);
       const [result] = await this.pool.query<any>(
-        'INSERT INTO USERS (COMP_ID, USER_ABBR, USER_SURNAME, USER_FIRST_NAME, USER_ROLE, USER_PASSWORD) VALUES (?, ?, ?, ?, ?, ?)',
-        [companyId, username, surname, firstname, role, hashedPassword],
+        'INSERT INTO USERS (COMP_ID, USER_ABBR, USER_SURNAME, USER_FIRST_NAME, USER_ROLE, USER_PASSWORD, IS_ADMIN) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [companyId, username, surname, firstname, role, hashedPassword, isAdmin ? 1 : 0],
       );
 
       const userId = result.insertId;
@@ -355,6 +356,34 @@ export class UsersService implements OnModuleInit {
       }
 
       return { success: true, userId: rows[0].USER_ID };
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        `Server error: ${(err as Error).message}`,
+      );
+    }
+  }
+
+  async getUserById(userId: number) {
+    try {
+      const [rows] = await this.pool.query<any[]>(
+        'SELECT USER_FIRST_NAME, USER_SURNAME, USER_ROLE FROM USERS WHERE USER_ID = ?',
+        [userId],
+      );
+
+      if (rows.length === 0) {
+        throw new NotFoundException('User not found');
+      }
+
+      const user = rows[0];
+      return {
+        success: true,
+        firstname: user.USER_FIRST_NAME,
+        surname: user.USER_SURNAME,
+        role: user.USER_ROLE,
+      };
     } catch (err) {
       if (err instanceof NotFoundException) {
         throw err;

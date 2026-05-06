@@ -31,4 +31,7 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @ApiProperty({ description: 'Whether the user is an admin.', default: false })
+  isAdmin?: boolean;
 }

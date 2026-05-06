@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { MimoModule } from './mimo/mimo.module';
 import { AssetsModule } from './graphql/assets/assets.module';
 import { AssetExportModule } from './graphql/asset-export/asset-export.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AssetExportModule } from './graphql/asset-export/asset-export.module';
     MimoModule,
     AssetsModule,
     AssetExportModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

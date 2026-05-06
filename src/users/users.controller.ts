@@ -134,13 +134,23 @@ export class UsersController {
     );
   }
 
-  @Get('/health')
-  @ApiOperation({ summary: 'Health check endpoint' })
+  @Get('users/:userId')
+  @ApiOperation({ summary: 'Get user info by ID' })
+  @ApiParam({ name: 'userId', type: Number, example: 42 })
   @ApiResponse({
     status: 200,
-    schema: { example: { status: 'ok', port: 3000 } },
+    description: 'User info retrieved',
+    schema: {
+      example: {
+        success: true,
+        firstname: 'John',
+        surname: 'Doe',
+        role: 'Consultant',
+      },
+    },
   })
-  health() {
-    return this.usersService.getHealth();
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getUserById(@Param('userId', ParseIntPipe) userId: number) {
+    return this.usersService.getUserById(userId);
   }
 }
