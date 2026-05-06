@@ -394,6 +394,31 @@ export class UsersService implements OnModuleInit {
     }
   }
 
+  async checkAdminStatus(userId: number) {
+    try {
+      const [rows] = await this.pool.query<any[]>(
+        'SELECT IS_ADMIN FROM USERS WHERE USER_ID = ?',
+        [userId],
+      );
+
+      if (rows.length === 0) {
+        throw new NotFoundException('User not found');
+      }
+
+      return {
+        success: true,
+        isAdmin: !!rows[0].IS_ADMIN,
+      };
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw err;
+      }
+      throw new InternalServerErrorException(
+        `Server error: ${(err as Error).message}`,
+      );
+    }
+  }
+
   getHealth() {
     return { status: 'ok', port: Number(process.env.PORT ?? 3000) };
   }

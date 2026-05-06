@@ -103,39 +103,24 @@ export class UsersController {
     return this.usersService.uploadProfilePicture(userId, file);
   }
 
-  @Get('user-id')
-  @ApiOperation({ summary: 'Get userId from username and companyId' })
-  @ApiQuery({
-    name: 'username',
-    type: String,
-    required: true,
-    example: 'NSCHMID',
-  })
-  @ApiQuery({ name: 'companyId', type: Number, required: true, example: 7 })
+  @Get('users/by-username/:username/company/:companyId')
+  @ApiOperation({ summary: 'Gets user ID from username and company ID' })
+  @ApiParam({ name: 'username', type: String, example: 'NSCHMID' })
+  @ApiParam({ name: 'companyId', type: Number, example: 7 })
   @ApiResponse({
     status: 200,
     description: 'User id resolved',
     schema: { example: { success: true, userId: 42 } },
   })
   async getUserId(
-    @Query('username') username?: string,
-    @Query('companyId') companyId?: string,
+    @Param('username') username: string,
+    @Param('companyId', ParseIntPipe) companyId: number,
   ) {
-    if (!username || !companyId) {
-      throw new BadRequestException('Missing username or companyId');
-    }
-    const parsedCompanyId = Number.parseInt(companyId, 10);
-    if (Number.isNaN(parsedCompanyId)) {
-      throw new BadRequestException('Missing username or companyId');
-    }
-    return this.usersService.getUserIdByUsernameAndCompany(
-      username,
-      parsedCompanyId,
-    );
+    return this.usersService.getUserIdByUsernameAndCompany(username, companyId);
   }
 
-  @Get('users/:userId')
-  @ApiOperation({ summary: 'Get user info by ID' })
+  @Get('users/preview/:userId')
+  @ApiOperation({ summary: 'Gets user preview by ID' })
   @ApiParam({ name: 'userId', type: Number, example: 42 })
   @ApiResponse({
     status: 200,
@@ -152,5 +137,18 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async getUserById(@Param('userId', ParseIntPipe) userId: number) {
     return this.usersService.getUserById(userId);
+  }
+
+  @Get('users/:userId/is-admin')
+  @ApiOperation({ summary: 'Checks if a user is an admin by ID' })
+  @ApiParam({ name: 'userId', type: Number, example: 42 })
+  @ApiResponse({
+    status: 200,
+    description: 'Admin status retrieved',
+    schema: { example: { success: true, isAdmin: true } },
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async checkAdminStatus(@Param('userId', ParseIntPipe) userId: number) {
+    return this.usersService.checkAdminStatus(userId);
   }
 }
